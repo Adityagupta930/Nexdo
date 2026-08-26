@@ -9,6 +9,8 @@ export interface Task {
   category: Category;
   weekId: string;
   dueDate: string;
+  dueTime?: string; // "HH:mm"
+  reminderMinutes?: number; // minutes before due time
   completed: boolean;
   completedAt?: string;
   createdAt: string;
