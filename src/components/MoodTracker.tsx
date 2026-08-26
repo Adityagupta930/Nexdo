@@ -105,7 +105,11 @@ export default function MoodTracker() {
             <XAxis dataKey="date" tick={{ fill: "#9ca3af", fontSize: 10 }} axisLine={false} tickLine={false} interval={2} />
             <Tooltip
               contentStyle={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "10px", fontSize: "12px" }}
-              formatter={(val: number) => [MOODS.find((m) => m.value === val)?.emoji + " " + MOODS.find((m) => m.value === val)?.label, "Mood"]}
+              formatter={(val) => {
+                const v = Number(val);
+                const m = MOODS.find((mood) => mood.value === v);
+                return m ? (`${m.emoji} ${m.label}` as unknown as [string, string]) : "—";
+              }}
             />
             <Area type="monotone" dataKey="mood" stroke="#6366f1" fill="url(#moodGrad)" strokeWidth={2} dot={{ fill: "#6366f1", r: 4 }} connectNulls={false} />
           </AreaChart>
