@@ -7,12 +7,11 @@ interface Habit {
   name: string;
   emoji: string;
   color: string;
-  logs: string[]; // ISO date strings
+  logs: string[];
 }
 
 const COLORS = ["bg-indigo-500", "bg-pink-500", "bg-green-500", "bg-amber-500", "bg-purple-500", "bg-blue-500"];
 const EMOJIS = ["💪", "📚", "🏃", "💧", "🧘", "🍎", "😴", "✍️", "🎯", "🌿"];
-
 const STORAGE_KEY = "nexdo-habits";
 
 function load(): Habit[] {
@@ -73,38 +72,28 @@ export default function HabitTracker() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">{habits.length} habits tracked</p>
-        <button
-          onClick={() => setAdding(true)}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-md shadow-indigo-200"
-        >
+        <button onClick={() => setAdding(true)} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-md shadow-indigo-200">
           <Plus size={15} /> Add Habit
         </button>
       </div>
 
       {adding && (
         <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-3">
-          <input
-            type="text" placeholder="Habit name..." value={name}
-            onChange={(e) => setName(e.target.value)} autoFocus
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-400 text-sm"
-          />
+          <input type="text" placeholder="Habit name..." value={name} onChange={(e) => setName(e.target.value)} autoFocus
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-400 text-sm" />
           <div>
-            <p className="text-xs text-gray-500 mb-2 font-medium">Pick emoji</p>
+            <p className="text-xs text-gray-500 mb-2 font-medium">Emoji</p>
             <div className="flex gap-2 flex-wrap">
               {EMOJIS.map((e) => (
-                <button key={e} onClick={() => setEmoji(e)}
-                  className={`w-9 h-9 rounded-lg text-lg transition-all ${emoji === e ? "bg-indigo-100 ring-2 ring-indigo-400" : "bg-gray-100 hover:bg-gray-200"}`}>
-                  {e}
-                </button>
+                <button key={e} onClick={() => setEmoji(e)} className={`w-9 h-9 rounded-lg text-lg transition-all ${emoji === e ? "bg-indigo-100 ring-2 ring-indigo-400" : "bg-gray-100 hover:bg-gray-200"}`}>{e}</button>
               ))}
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-2 font-medium">Pick color</p>
+            <p className="text-xs text-gray-500 mb-2 font-medium">Color</p>
             <div className="flex gap-2">
               {COLORS.map((c) => (
-                <button key={c} onClick={() => setColor(c)}
-                  className={`w-7 h-7 rounded-full ${c} transition-all ${color === c ? "ring-2 ring-offset-2 ring-gray-400 scale-110" : ""}`} />
+                <button key={c} onClick={() => setColor(c)} className={`w-7 h-7 rounded-full ${c} transition-all ${color === c ? "ring-2 ring-offset-2 ring-gray-400 scale-110" : ""}`} />
               ))}
             </div>
           </div>
@@ -115,31 +104,25 @@ export default function HabitTracker() {
         </div>
       )}
 
-      {/* Day Headers */}
       {habits.length > 0 && (
         <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-          <div className="grid grid-cols-[1fr_repeat(7,2.5rem)] gap-0 px-4 py-2 border-b border-gray-50">
+          <div className="grid grid-cols-[1fr_repeat(7,2.5rem)] px-4 py-2 border-b border-gray-50">
             <div />
             {days.map((d) => {
-              const date = new Date(d);
+              const date = new Date(d + "T00:00:00");
               const isToday = d === today;
               return (
                 <div key={d} className="text-center">
-                  <p className={`text-xs font-bold ${isToday ? "text-indigo-600" : "text-gray-400"}`}>
-                    {date.toLocaleDateString("en", { weekday: "short" }).slice(0, 1)}
-                  </p>
-                  <p className={`text-xs ${isToday ? "text-indigo-600 font-bold" : "text-gray-400"}`}>
-                    {date.getDate()}
-                  </p>
+                  <p className={`text-xs font-bold ${isToday ? "text-indigo-600" : "text-gray-400"}`}>{date.toLocaleDateString("en", { weekday: "short" }).slice(0, 1)}</p>
+                  <p className={`text-xs ${isToday ? "text-indigo-600 font-bold" : "text-gray-400"}`}>{date.getDate()}</p>
                 </div>
               );
             })}
           </div>
-
           {habits.map((habit) => {
             const streak = getStreak(habit);
             return (
-              <div key={habit.id} className="group grid grid-cols-[1fr_repeat(7,2.5rem)] gap-0 px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors items-center">
+              <div key={habit.id} className="group grid grid-cols-[1fr_repeat(7,2.5rem)] px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors items-center">
                 <div className="flex items-center gap-2 min-w-0 pr-2">
                   <span className="text-lg">{habit.emoji}</span>
                   <div className="min-w-0">
@@ -147,7 +130,7 @@ export default function HabitTracker() {
                     {streak > 0 && (
                       <div className="flex items-center gap-1">
                         <Flame size={10} className="text-orange-500" />
-                        <span className="text-xs text-orange-500 font-medium">{streak} day streak</span>
+                        <span className="text-xs text-orange-500 font-medium">{streak}d streak</span>
                       </div>
                     )}
                   </div>
@@ -160,14 +143,9 @@ export default function HabitTracker() {
                   const isFuture = d > today;
                   return (
                     <div key={d} className="flex items-center justify-center">
-                      <button
-                        onClick={() => !isFuture && toggleDay(habit.id, d)}
-                        disabled={isFuture}
-                        className={`w-7 h-7 rounded-lg transition-all ${
-                          done ? `${habit.color} shadow-sm` : isFuture ? "bg-gray-50" : "bg-gray-100 hover:bg-gray-200"
-                        }`}
-                      >
-                        {done && <span className="text-white text-xs">✓</span>}
+                      <button onClick={() => !isFuture && toggleDay(habit.id, d)} disabled={isFuture}
+                        className={`w-7 h-7 rounded-lg transition-all text-xs font-bold ${done ? `${habit.color} text-white shadow-sm` : isFuture ? "bg-gray-50" : "bg-gray-100 hover:bg-gray-200"}`}>
+                        {done ? "✓" : ""}
                       </button>
                     </div>
                   );

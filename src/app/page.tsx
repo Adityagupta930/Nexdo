@@ -15,6 +15,9 @@ import QuickNotes from "@/components/QuickNotes";
 import SearchTasks from "@/components/SearchTasks";
 import AddTaskModal from "@/components/AddTaskModal";
 import DailyQuote from "@/components/DailyQuote";
+import HabitTracker from "@/components/HabitTracker";
+import MoodTracker from "@/components/MoodTracker";
+import PriorityMatrix from "@/components/PriorityMatrix";
 import { Priority, Category } from "@/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -24,6 +27,9 @@ const TAB_TITLES: Record<string, { title: string; subtitle: string }> = {
   tasks: { title: "Weekly Tasks", subtitle: "" },
   calendar: { title: "Daily Calendar", subtitle: "Your week at a glance" },
   focus: { title: "Focus Timer", subtitle: "Stay in the zone with Pomodoro" },
+  habits: { title: "Habit Tracker", subtitle: "Build consistency day by day" },
+  mood: { title: "Mood Tracker", subtitle: "Log and visualize your daily mood" },
+  matrix: { title: "Priority Matrix", subtitle: "Eisenhower method to prioritize tasks" },
   goals: { title: "My Goals", subtitle: "Set and track long-term goals" },
   stats: { title: "Analytics", subtitle: "Track your productivity over time" },
   search: { title: "Search", subtitle: "Find any task instantly" },
@@ -197,6 +203,9 @@ export default function Home() {
 
           {activeTab === "calendar" && <DailyView />}
           {activeTab === "focus" && <FocusTimer />}
+          {activeTab === "habits" && <HabitTracker />}
+          {activeTab === "mood" && <MoodTracker />}
+          {activeTab === "matrix" && <PriorityMatrix />}
           {activeTab === "goals" && <Goals />}
           {activeTab === "stats" && <StatsGraph />}
           {activeTab === "search" && <SearchTasks />}
