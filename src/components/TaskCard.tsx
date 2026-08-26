@@ -47,6 +47,11 @@ export default function TaskCard({ task }: { task: Task }) {
           <span className="text-xs text-gray-400">
             {format(new Date(task.dueDate), "MMM d")}
           </span>
+          {task.dueTime && (
+            <span className="text-xs text-indigo-500 font-medium bg-indigo-50 px-2 py-0.5 rounded-full">
+              ⏰ {task.dueTime}
+            </span>
+          )}
         </div>
       </div>
 

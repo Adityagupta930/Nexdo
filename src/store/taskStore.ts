@@ -10,7 +10,7 @@ interface TaskStore {
   loading: boolean;
   setSelectedWeek: (weekId: string) => void;
   fetchTasks: () => Promise<void>;
-  addTask: (task: Omit<Task, "id" | "createdAt" | "completed">) => Promise<void>;
+  addTask: (task: Omit<Task, "id" | "createdAt" | "completed">) => Promise<Task | null>;
   toggleTask: (id: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
@@ -39,6 +39,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         category: t.category as Category,
         weekId: t.week_id,
         dueDate: t.due_date,
+        dueTime: t.due_time ?? undefined,
+        reminderMinutes: t.reminder_minutes ?? 15,
         completed: t.completed,
         completedAt: t.completed_at,
         createdAt: t.created_at,
@@ -50,7 +52,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   addTask: async (task) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) return null;
 
     const { data, error } = await supabase
       .from("tasks")
@@ -61,6 +63,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         category: task.category,
         week_id: task.weekId,
         due_date: task.dueDate,
+        due_time: task.dueTime ?? null,
+        reminder_minutes: task.reminderMinutes ?? 15,
         completed: false,
         user_id: user.id,
       })
@@ -76,11 +80,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         category: data.category,
         weekId: data.week_id,
         dueDate: data.due_date,
+        dueTime: data.due_time ?? undefined,
+        reminderMinutes: data.reminder_minutes ?? 15,
         completed: data.completed,
         createdAt: data.created_at,
       };
       set((state) => ({ tasks: [newTask, ...state.tasks] }));
+      return newTask;
     }
+    return null;
   },
 
   toggleTask: async (id) => {
