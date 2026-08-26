@@ -1,5 +1,5 @@
 "use client";
-import { CheckSquare, BarChart2, Calendar, Zap, Target, Star } from "lucide-react";
+import { CheckSquare, BarChart2, Calendar, Zap, Target, Timer, Search, StickyNote } from "lucide-react";
 
 interface Props {
   activeTab: string;
@@ -9,8 +9,11 @@ interface Props {
 const navItems = [
   { id: "tasks", label: "Tasks", icon: CheckSquare },
   { id: "calendar", label: "Calendar", icon: Calendar },
-  { id: "stats", label: "Analytics", icon: BarChart2 },
+  { id: "focus", label: "Focus", icon: Timer },
   { id: "goals", label: "Goals", icon: Target },
+  { id: "stats", label: "Analytics", icon: BarChart2 },
+  { id: "search", label: "Search", icon: Search },
+  { id: "notes", label: "Notes", icon: StickyNote },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab }: Props) {
@@ -41,11 +44,8 @@ export default function Sidebar({ activeTab, setActiveTab }: Props) {
       </nav>
 
       <div className="hidden md:block px-2 py-3 bg-indigo-50 border border-indigo-100 rounded-xl">
-        <div className="flex items-center gap-1.5 mb-1">
-          <Star size={12} className="text-indigo-500" />
-          <p className="text-xs text-indigo-600 font-semibold">Pro Tip</p>
-        </div>
-        <p className="text-xs text-gray-400">Plan your week every Monday for best results!</p>
+        <p className="text-xs text-indigo-600 font-semibold mb-1">💡 Pro Tip</p>
+        <p className="text-xs text-gray-400">Use Focus timer to stay productive. 4 sessions = 1 long break!</p>
       </div>
     </aside>
   );
