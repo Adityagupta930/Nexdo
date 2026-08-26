@@ -20,6 +20,7 @@ import MoodTracker from "@/components/MoodTracker";
 import PriorityMatrix from "@/components/PriorityMatrix";
 import { Priority, Category } from "@/types";
 import type { User } from "@supabase/supabase-js";
+import { scheduleAllReminders, requestNotificationPermission } from "@/lib/notifications";
 
 type FilterType = "all" | Priority | Category;
 
@@ -50,7 +51,14 @@ export default function Home() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setAuthLoading(false);
-      if (session?.user) fetchTasks();
+      if (session?.user) {
+        fetchTasks().then(() => {
+          // Schedule reminders for all existing tasks
+          requestNotificationPermission().then((granted) => {
+            if (granted) scheduleAllReminders(useTaskStore.getState().tasks);
+          });
+        });
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
