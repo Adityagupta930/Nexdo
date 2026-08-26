@@ -10,11 +10,25 @@ import TaskCard from "@/components/TaskCard";
 import DailyView from "@/components/DailyView";
 import StatsGraph from "@/components/StatsGraph";
 import Goals from "@/components/Goals";
+import FocusTimer from "@/components/FocusTimer";
+import QuickNotes from "@/components/QuickNotes";
+import SearchTasks from "@/components/SearchTasks";
 import AddTaskModal from "@/components/AddTaskModal";
+import DailyQuote from "@/components/DailyQuote";
 import { Priority, Category } from "@/types";
 import type { User } from "@supabase/supabase-js";
 
 type FilterType = "all" | Priority | Category;
+
+const TAB_TITLES: Record<string, { title: string; subtitle: string }> = {
+  tasks: { title: "Weekly Tasks", subtitle: "" },
+  calendar: { title: "Daily Calendar", subtitle: "Your week at a glance" },
+  focus: { title: "Focus Timer", subtitle: "Stay in the zone with Pomodoro" },
+  goals: { title: "My Goals", subtitle: "Set and track long-term goals" },
+  stats: { title: "Analytics", subtitle: "Track your productivity over time" },
+  search: { title: "Search", subtitle: "Find any task instantly" },
+  notes: { title: "Week Notes", subtitle: "Capture ideas and reflections" },
+};
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -72,28 +86,23 @@ export default function Home() {
 
   const completed = weekTasks.filter((t) => t.completed).length;
   const progress = weekTasks.length > 0 ? (completed / weekTasks.length) * 100 : 0;
+  const tab = TAB_TITLES[activeTab];
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <div className="max-w-4xl mx-auto p-6 space-y-5">
 
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">
-                {activeTab === "tasks" && "Weekly Tasks"}
-                {activeTab === "calendar" && "Daily Calendar"}
-                {activeTab === "stats" && "Analytics"}
-                {activeTab === "goals" && "My Goals"}
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-800">{tab.title}</h1>
               <p className="text-gray-400 text-sm mt-0.5">
-                {activeTab === "tasks" && `${completed}/${weekTasks.length} tasks completed this week`}
-                {activeTab === "calendar" && "Your week at a glance"}
-                {activeTab === "stats" && "Track your productivity over time"}
-                {activeTab === "goals" && "Set and track your long-term goals"}
+                {activeTab === "tasks"
+                  ? `${completed}/${weekTasks.length} tasks completed this week`
+                  : tab.subtitle}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -116,8 +125,11 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Daily Quote - only on tasks tab */}
+          {activeTab === "tasks" && <DailyQuote />}
+
           {/* Week Selector */}
-          {(activeTab === "tasks" || activeTab === "calendar") && (
+          {(activeTab === "tasks" || activeTab === "calendar" || activeTab === "notes") && (
             <div className="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
               <WeekSelector />
               {activeTab === "tasks" && weekTasks.length > 0 && (
@@ -184,8 +196,11 @@ export default function Home() {
           )}
 
           {activeTab === "calendar" && <DailyView />}
-          {activeTab === "stats" && <StatsGraph />}
+          {activeTab === "focus" && <FocusTimer />}
           {activeTab === "goals" && <Goals />}
+          {activeTab === "stats" && <StatsGraph />}
+          {activeTab === "search" && <SearchTasks />}
+          {activeTab === "notes" && <QuickNotes />}
         </div>
       </main>
 
