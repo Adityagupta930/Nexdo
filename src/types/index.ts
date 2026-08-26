@@ -1,5 +1,6 @@
 export type Priority = "low" | "medium" | "high";
 export type Category = "work" | "personal" | "health" | "learning" | "other";
+export type RecurrenceType = "daily" | "weekly" | "monthly";
 
 export interface Task {
   id: string;
@@ -9,8 +10,12 @@ export interface Task {
   category: Category;
   weekId: string;
   dueDate: string;
-  dueTime?: string; // "HH:mm"
-  reminderMinutes?: number; // minutes before due time
+  dueTime?: string;
+  reminderMinutes?: number;
+  isRecurring?: boolean;
+  recurrenceType?: RecurrenceType;
+  recurrenceDays?: number[]; // 0=Sun,1=Mon...6=Sat
+  parentTaskId?: string;
   completed: boolean;
   completedAt?: string;
   createdAt: string;
