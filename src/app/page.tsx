@@ -45,7 +45,7 @@ export default function Home() {
   const [filter, setFilter] = useState<FilterType>("all");
   const router = useRouter();
 
-  const { selectedWeekId, tasks, fetchTasks, loading } = useTaskStore();
+  const { selectedWeekId, tasks, fetchTasks, loading, generateRecurringTasks } = useTaskStore();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -53,7 +53,7 @@ export default function Home() {
       setAuthLoading(false);
       if (session?.user) {
         fetchTasks().then(() => {
-          // Schedule reminders for all existing tasks
+          generateRecurringTasks();
           requestNotificationPermission().then((granted) => {
             if (granted) scheduleAllReminders(useTaskStore.getState().tasks);
           });
