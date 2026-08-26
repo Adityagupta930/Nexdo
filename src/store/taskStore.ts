@@ -1,59 +1,120 @@
 "use client";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { v4 as uuidv4 } from "uuid";
 import { Task, Priority, Category } from "@/types";
 import { getCurrentWeekId } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
 interface TaskStore {
   tasks: Task[];
   selectedWeekId: string;
+  loading: boolean;
   setSelectedWeek: (weekId: string) => void;
-  addTask: (task: Omit<Task, "id" | "createdAt" | "completed">) => void;
-  toggleTask: (id: string) => void;
-  deleteTask: (id: string) => void;
-  updateTask: (id: string, updates: Partial<Task>) => void;
-  getTasksByWeek: (weekId: string) => Task[];
-  getTasksByDate: (date: string) => Task[];
+  fetchTasks: () => Promise<void>;
+  addTask: (task: Omit<Task, "id" | "createdAt" | "completed">) => Promise<void>;
+  toggleTask: (id: string) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
 }
 
-export const useTaskStore = create<TaskStore>()(
-  persist(
-    (set, get) => ({
-      tasks: [],
-      selectedWeekId: getCurrentWeekId(),
+export const useTaskStore = create<TaskStore>((set, get) => ({
+  tasks: [],
+  selectedWeekId: getCurrentWeekId(),
+  loading: false,
 
-      setSelectedWeek: (weekId) => set({ selectedWeekId: weekId }),
+  setSelectedWeek: (weekId) => set({ selectedWeekId: weekId }),
 
-      addTask: (task) =>
-        set((state) => ({
-          tasks: [
-            ...state.tasks,
-            { ...task, id: uuidv4(), createdAt: new Date().toISOString(), completed: false },
-          ],
-        })),
+  fetchTasks: async () => {
+    set({ loading: true });
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-      toggleTask: (id) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) =>
-            t.id === id
-              ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : undefined }
-              : t
-          ),
-        })),
+    if (!error && data) {
+      const tasks: Task[] = data.map((t) => ({
+        id: t.id,
+        title: t.title,
+        description: t.description,
+        priority: t.priority as Priority,
+        category: t.category as Category,
+        weekId: t.week_id,
+        dueDate: t.due_date,
+        completed: t.completed,
+        completedAt: t.completed_at,
+        createdAt: t.created_at,
+      }));
+      set({ tasks });
+    }
+    set({ loading: false });
+  },
 
-      deleteTask: (id) =>
-        set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) })),
+  addTask: async (task) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-      updateTask: (id, updates) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-        })),
+    const { data, error } = await supabase
+      .from("tasks")
+      .insert({
+        title: task.title,
+        description: task.description,
+        priority: task.priority,
+        category: task.category,
+        week_id: task.weekId,
+        due_date: task.dueDate,
+        completed: false,
+        user_id: user.id,
+      })
+      .select()
+      .single();
 
-      getTasksByWeek: (weekId) => get().tasks.filter((t) => t.weekId === weekId),
+    if (!error && data) {
+      const newTask: Task = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        category: data.category,
+        weekId: data.week_id,
+        dueDate: data.due_date,
+        completed: data.completed,
+        createdAt: data.created_at,
+      };
+      set((state) => ({ tasks: [newTask, ...state.tasks] }));
+    }
+  },
 
-      getTasksByDate: (date) => get().tasks.filter((t) => t.dueDate.startsWith(date)),
-    }),
-    { name: "nexdo-tasks" }
-  )
-);
+  toggleTask: async (id) => {
+    const task = get().tasks.find((t) => t.id === id);
+    if (!task) return;
+
+    const completed = !task.completed;
+    const { error } = await supabase
+      .from("tasks")
+      .update({ completed, completed_at: completed ? new Date().toISOString() : null })
+      .eq("id", id);
+
+    if (!error) {
+      set((state) => ({
+        tasks: state.tasks.map((t) =>
+          t.id === id ? { ...t, completed, completedAt: completed ? new Date().toISOString() : undefined } : t
+        ),
+      }));
+    }
+  },
+
+  deleteTask: async (id) => {
+    const { error } = await supabase.from("tasks").delete().eq("id", id);
+    if (!error) {
+      set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }));
+    }
+  },
+
+  updateTask: async (id, updates) => {
+    const { error } = await supabase.from("tasks").update(updates).eq("id", id);
+    if (!error) {
+      set((state) => ({
+        tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+      }));
+    }
+  },
+}));

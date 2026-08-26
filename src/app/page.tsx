@@ -1,6 +1,8 @@
 "use client";
-import { useState } from "react";
-import { Plus, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, Filter, LogOut, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { useTaskStore } from "@/store/taskStore";
 import Sidebar from "@/components/Sidebar";
 import WeekSelector from "@/components/WeekSelector";
@@ -9,14 +11,51 @@ import DailyView from "@/components/DailyView";
 import StatsGraph from "@/components/StatsGraph";
 import AddTaskModal from "@/components/AddTaskModal";
 import { Priority, Category } from "@/types";
+import type { User } from "@supabase/supabase-js";
 
 type FilterType = "all" | Priority | Category;
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("tasks");
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
-  const { selectedWeekId, tasks } = useTaskStore();
+  const router = useRouter();
+
+  const { selectedWeekId, tasks, fetchTasks, loading } = useTaskStore();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+      if (session?.user) fetchTasks();
+      else router.push("/auth");
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) fetchTasks();
+      else router.push("/auth");
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/auth");
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0d0d1a] flex items-center justify-center">
+        <Loader2 size={32} className="text-indigo-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   const weekTasks = tasks.filter((t) => t.weekId === selectedWeekId);
   const filteredTasks = weekTasks.filter((t) => {
@@ -48,15 +87,24 @@ export default function Home() {
                 {activeTab === "stats" && "Track your productivity"}
               </p>
             </div>
-            {activeTab === "tasks" && (
+            <div className="flex items-center gap-3">
+              {activeTab === "tasks" && (
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all hover:shadow-lg hover:shadow-indigo-500/25 active:scale-95"
+                >
+                  <Plus size={16} />
+                  Add Task
+                </button>
+              )}
               <button
-                onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all hover:shadow-lg hover:shadow-indigo-500/25 active:scale-95"
+                onClick={handleSignOut}
+                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"
+                title="Sign out"
               >
-                <Plus size={16} />
-                Add Task
+                <LogOut size={16} />
               </button>
-            )}
+            </div>
           </div>
 
           {/* Week Selector */}
@@ -80,7 +128,6 @@ export default function Home() {
           {/* Tasks Tab */}
           {activeTab === "tasks" && (
             <div className="space-y-4">
-              {/* Filters */}
               <div className="flex gap-2 flex-wrap">
                 {(["all", "high", "medium", "low", "work", "personal", "health", "learning"] as FilterType[]).map((f) => (
                   <button
@@ -97,14 +144,15 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* Task List */}
-              {filteredTasks.length > 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 size={24} className="text-indigo-400 animate-spin" />
+                </div>
+              ) : filteredTasks.length > 0 ? (
                 <div className="space-y-2">
-                  {/* Pending */}
                   {filteredTasks.filter((t) => !t.completed).map((task) => (
                     <TaskCard key={task.id} task={task} />
                   ))}
-                  {/* Completed */}
                   {filteredTasks.filter((t) => t.completed).length > 0 && (
                     <>
                       <p className="text-xs text-gray-600 font-medium pt-2 pb-1">Completed</p>
@@ -126,10 +174,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Calendar Tab */}
           {activeTab === "calendar" && <DailyView />}
-
-          {/* Stats Tab */}
           {activeTab === "stats" && <StatsGraph />}
         </div>
       </main>
