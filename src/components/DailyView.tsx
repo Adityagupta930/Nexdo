@@ -22,14 +22,16 @@ export default function DailyView() {
           <div
             key={dateStr}
             className={`rounded-xl p-3 border min-h-[120px] ${
-              isToday ? "border-indigo-500/50 bg-indigo-500/5" : "border-white/8 bg-white/3"
+              isToday
+                ? "border-indigo-300 bg-indigo-50 shadow-md shadow-indigo-100"
+                : "border-gray-100 bg-white"
             }`}
           >
             <div className="mb-2">
-              <p className={`text-xs font-bold uppercase tracking-wider ${isToday ? "text-indigo-400" : "text-gray-500"}`}>
+              <p className={`text-xs font-bold uppercase tracking-wider ${isToday ? "text-indigo-500" : "text-gray-400"}`}>
                 {format(day, "EEE")}
               </p>
-              <p className={`text-lg font-bold ${isToday ? "text-white" : "text-gray-400"}`}>
+              <p className={`text-lg font-bold ${isToday ? "text-indigo-600" : "text-gray-600"}`}>
                 {format(day, "d")}
               </p>
             </div>
@@ -38,7 +40,9 @@ export default function DailyView() {
                 <div
                   key={task.id}
                   className={`text-xs p-2 rounded-lg truncate cursor-default ${
-                    task.completed ? "line-through text-gray-600 bg-white/3" : "text-white bg-white/8"
+                    task.completed
+                      ? "line-through text-gray-400 bg-gray-100"
+                      : "text-gray-700 bg-indigo-50 border border-indigo-100"
                   }`}
                   title={task.title}
                 >
@@ -46,7 +50,7 @@ export default function DailyView() {
                 </div>
               ))}
               {dayTasks.length === 0 && (
-                <p className="text-xs text-gray-700 italic">No tasks</p>
+                <p className="text-xs text-gray-300 italic">No tasks</p>
               )}
             </div>
           </div>

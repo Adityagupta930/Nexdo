@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Zap, Loader2, Eye, EyeOff } from "lucide-react";
 
@@ -11,6 +12,7 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,43 +24,48 @@ export default function AuthPage() {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      if (error.message.includes("Invalid login")) setError("Wrong password. Try again.");
-      else setError(error.message);
+      setError("Wrong email or password. Try again.");
+      setLoading(false);
+      return;
+    }
+    if (data.session) {
+      router.push("/");
+      router.refresh();
     }
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0d1a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-            <Zap size={20} className="text-white" />
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+            <Zap size={22} className="text-white" />
           </div>
-          <span className="text-white font-bold text-2xl tracking-tight">Nexdo</span>
+          <span className="text-indigo-600 font-bold text-3xl tracking-tight">Nexdo</span>
         </div>
 
-        <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 shadow-2xl">
-          <h2 className="text-xl font-bold text-white mb-1">Welcome back</h2>
-          <p className="text-gray-500 text-sm mb-6">Sign in to your Nexdo account</p>
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-xl shadow-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-1">Welcome back 👋</h2>
+          <p className="text-gray-400 text-sm mb-6">Sign in to your Nexdo account</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Email</label>
+              <label className="text-xs text-gray-500 mb-1 block font-medium">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors text-sm"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:bg-white transition-all text-sm"
               />
             </div>
 
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Password</label>
+              <label className="text-xs text-gray-500 mb-1 block font-medium">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -66,12 +73,12 @@ export default function AuthPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors text-sm"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:bg-white transition-all text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -79,7 +86,7 @@ export default function AuthPage() {
             </div>
 
             {error && (
-              <p className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+              <p className="text-red-500 text-xs bg-red-50 border border-red-100 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
@@ -87,7 +94,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 mt-2"
+              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-indigo-200 hover:shadow-lg mt-2"
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
               Sign In
@@ -95,7 +102,7 @@ export default function AuthPage() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-gray-700 mt-4">Private access only</p>
+        <p className="text-center text-xs text-gray-400 mt-4">🔒 Private access only</p>
       </div>
     </div>
   );

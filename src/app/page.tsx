@@ -9,6 +9,7 @@ import WeekSelector from "@/components/WeekSelector";
 import TaskCard from "@/components/TaskCard";
 import DailyView from "@/components/DailyView";
 import StatsGraph from "@/components/StatsGraph";
+import Goals from "@/components/Goals";
 import AddTaskModal from "@/components/AddTaskModal";
 import { Priority, Category } from "@/types";
 import type { User } from "@supabase/supabase-js";
@@ -30,13 +31,12 @@ export default function Home() {
       setUser(session?.user ?? null);
       setAuthLoading(false);
       if (session?.user) fetchTasks();
-      else router.push("/auth");
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setAuthLoading(false);
       if (session?.user) fetchTasks();
-      else router.push("/auth");
     });
 
     return () => subscription.unsubscribe();
@@ -49,13 +49,20 @@ export default function Home() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0d0d1a] flex items-center justify-center">
-        <Loader2 size={32} className="text-indigo-400 animate-spin" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 size={32} className="text-indigo-500 animate-spin" />
       </div>
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    router.push("/auth");
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 size={32} className="text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
 
   const weekTasks = tasks.filter((t) => t.weekId === selectedWeekId);
   const filteredTasks = weekTasks.filter((t) => {
@@ -67,7 +74,7 @@ export default function Home() {
   const progress = weekTasks.length > 0 ? (completed / weekTasks.length) * 100 : 0;
 
   return (
-    <div className="flex h-screen bg-[#0d0d1a] text-white overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="flex-1 overflow-y-auto">
@@ -76,22 +83,24 @@ export default function Home() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-2xl font-bold text-gray-800">
                 {activeTab === "tasks" && "Weekly Tasks"}
                 {activeTab === "calendar" && "Daily Calendar"}
                 {activeTab === "stats" && "Analytics"}
+                {activeTab === "goals" && "My Goals"}
               </h1>
-              <p className="text-gray-500 text-sm mt-0.5">
-                {activeTab === "tasks" && `${completed}/${weekTasks.length} tasks completed`}
+              <p className="text-gray-400 text-sm mt-0.5">
+                {activeTab === "tasks" && `${completed}/${weekTasks.length} tasks completed this week`}
                 {activeTab === "calendar" && "Your week at a glance"}
-                {activeTab === "stats" && "Track your productivity"}
+                {activeTab === "stats" && "Track your productivity over time"}
+                {activeTab === "goals" && "Set and track your long-term goals"}
               </p>
             </div>
             <div className="flex items-center gap-3">
               {activeTab === "tasks" && (
                 <button
                   onClick={() => setShowModal(true)}
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all hover:shadow-lg hover:shadow-indigo-500/25 active:scale-95"
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all shadow-md shadow-indigo-200 hover:shadow-lg active:scale-95"
                 >
                   <Plus size={16} />
                   Add Task
@@ -99,7 +108,7 @@ export default function Home() {
               )}
               <button
                 onClick={handleSignOut}
-                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"
+                className="p-2.5 rounded-xl bg-white border border-gray-100 hover:bg-red-50 hover:border-red-100 text-gray-400 hover:text-red-400 transition-all shadow-sm"
                 title="Sign out"
               >
                 <LogOut size={16} />
@@ -109,17 +118,17 @@ export default function Home() {
 
           {/* Week Selector */}
           {(activeTab === "tasks" || activeTab === "calendar") && (
-            <div className="flex items-center justify-between bg-white/3 border border-white/8 rounded-xl px-4 py-3">
+            <div className="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
               <WeekSelector />
               {activeTab === "tasks" && weekTasks.length > 0 && (
                 <div className="hidden md:flex items-center gap-3">
-                  <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className="w-32 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-indigo-500 rounded-full transition-all duration-500"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <span className="text-xs text-gray-400">{Math.round(progress)}%</span>
+                  <span className="text-xs text-gray-500 font-medium">{Math.round(progress)}%</span>
                 </div>
               )}
             </div>
@@ -135,8 +144,8 @@ export default function Home() {
                     onClick={() => setFilter(f)}
                     className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all capitalize ${
                       filter === f
-                        ? "bg-indigo-600 text-white"
-                        : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+                        ? "bg-indigo-600 text-white shadow-sm shadow-indigo-200"
+                        : "bg-white text-gray-400 border border-gray-100 hover:text-indigo-600 hover:border-indigo-200"
                     }`}
                   >
                     {f === "all" ? "All" : f}
@@ -146,7 +155,7 @@ export default function Home() {
 
               {loading ? (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 size={24} className="text-indigo-400 animate-spin" />
+                  <Loader2 size={24} className="text-indigo-500 animate-spin" />
                 </div>
               ) : filteredTasks.length > 0 ? (
                 <div className="space-y-2">
@@ -155,7 +164,7 @@ export default function Home() {
                   ))}
                   {filteredTasks.filter((t) => t.completed).length > 0 && (
                     <>
-                      <p className="text-xs text-gray-600 font-medium pt-2 pb-1">Completed</p>
+                      <p className="text-xs text-gray-400 font-medium pt-2 pb-1">✅ Completed</p>
                       {filteredTasks.filter((t) => t.completed).map((task) => (
                         <TaskCard key={task.id} task={task} />
                       ))}
@@ -164,11 +173,11 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="text-center py-16">
-                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Filter size={24} className="text-gray-600" />
+                  <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Filter size={24} className="text-indigo-400" />
                   </div>
                   <p className="text-gray-500 font-medium">No tasks this week</p>
-                  <p className="text-gray-700 text-sm mt-1">Click &quot;Add Task&quot; to get started</p>
+                  <p className="text-gray-400 text-sm mt-1">Click &quot;Add Task&quot; to get started</p>
                 </div>
               )}
             </div>
@@ -176,6 +185,7 @@ export default function Home() {
 
           {activeTab === "calendar" && <DailyView />}
           {activeTab === "stats" && <StatsGraph />}
+          {activeTab === "goals" && <Goals />}
         </div>
       </main>
 
