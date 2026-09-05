@@ -8,16 +8,15 @@ import Sidebar from "@/components/Sidebar";
 import WeekSelector from "@/components/WeekSelector";
 import TaskCard from "@/components/TaskCard";
 import DailyView from "@/components/DailyView";
-import StatsGraph from "@/components/StatsGraph";
 import Goals from "@/components/Goals";
 import FocusTimer from "@/components/FocusTimer";
-import QuickNotes from "@/components/QuickNotes";
-import SearchTasks from "@/components/SearchTasks";
 import AddTaskModal from "@/components/AddTaskModal";
 import DailyQuote from "@/components/DailyQuote";
 import HabitTracker from "@/components/HabitTracker";
 import MoodTracker from "@/components/MoodTracker";
-import PriorityMatrix from "@/components/PriorityMatrix";
+import TeachingLog from "@/components/TeachingLog";
+import Dashboard from "@/components/Dashboard";
+import DailyChecklist from "@/components/DailyChecklist";
 import { Priority, Category } from "@/types";
 import type { User } from "@supabase/supabase-js";
 import { scheduleAllReminders, requestNotificationPermission } from "@/lib/notifications";
@@ -25,33 +24,32 @@ import { scheduleAllReminders, requestNotificationPermission } from "@/lib/notif
 type FilterType = "all" | Priority | Category;
 
 const TAB_META: Record<string, { title: string; subtitle: string; emoji: string }> = {
-  tasks:    { title: "Weekly Tasks",    subtitle: "Plan and conquer your week",       emoji: "✅" },
-  calendar: { title: "Daily Calendar",  subtitle: "Your week at a glance",            emoji: "📅" },
-  focus:    { title: "Focus Timer",     subtitle: "Deep work with Pomodoro",          emoji: "⏱️" },
-  habits:   { title: "Habit Tracker",   subtitle: "Build consistency day by day",     emoji: "🔥" },
-  mood:     { title: "Mood Tracker",    subtitle: "Log your daily mood",              emoji: "😊" },
-  matrix:   { title: "Priority Matrix", subtitle: "Eisenhower method for clarity",    emoji: "📐" },
-  goals:    { title: "My Goals",        subtitle: "Set and track long-term goals",    emoji: "🎯" },
-  stats:    { title: "Analytics",       subtitle: "Track your productivity",          emoji: "📊" },
-  search:   { title: "Search",          subtitle: "Find any task instantly",          emoji: "🔍" },
-  notes:    { title: "Week Notes",      subtitle: "Capture ideas and reflections",    emoji: "📝" },
+  dashboard: { title: "Dashboard",       subtitle: "Your day at a glance",           emoji: "🏠" },
+  tasks:     { title: "Weekly Tasks",    subtitle: "Plan and conquer your week",      emoji: "✅" },
+  daily:     { title: "Daily Checklist", subtitle: "Recurring daily items",           emoji: "📋" },
+  calendar:  { title: "Daily Calendar",  subtitle: "Your week at a glance",           emoji: "📅" },
+  focus:     { title: "Focus Timer",     subtitle: "Deep work with Pomodoro",         emoji: "⏱️" },
+  habits:    { title: "Habit Tracker",   subtitle: "Build consistency day by day",    emoji: "🔥" },
+  mood:      { title: "Mood Tracker",    subtitle: "Log your daily mood",             emoji: "😊" },
+  goals:     { title: "My Goals",        subtitle: "Set and track long-term goals",   emoji: "🎯" },
+  teach:     { title: "Teaching Log",    subtitle: "Track what you taught today",     emoji: "👨🏫" },
 };
 
 const FILTERS: { label: string; value: FilterType }[] = [
-  { label: "All",      value: "all" },
-  { label: "🔴 High",  value: "high" },
-  { label: "🟡 Medium",value: "medium" },
-  { label: "🟢 Low",   value: "low" },
-  { label: "💼 Work",  value: "work" },
-  { label: "👤 Personal", value: "personal" },
-  { label: "💪 Health",   value: "health" },
-  { label: "📚 Learning", value: "learning" },
+  { label: "All",         value: "all" },
+  { label: "🔴 High",    value: "high" },
+  { label: "🟡 Medium",  value: "medium" },
+  { label: "🟢 Low",     value: "low" },
+  { label: "💼 Work",    value: "work" },
+  { label: "👤 Personal",value: "personal" },
+  { label: "💪 Health",  value: "health" },
+  { label: "📚 Learning",value: "learning" },
 ];
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("tasks");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const router = useRouter();
@@ -138,11 +136,11 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Quote */}
+          {/* Quote — only on tasks */}
           {activeTab === "tasks" && <DailyQuote />}
 
           {/* Week selector */}
-          {(activeTab === "tasks" || activeTab === "calendar" || activeTab === "notes") && (
+          {(activeTab === "tasks" || activeTab === "calendar") && (
             <div className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center justify-between shadow-sm">
               <WeekSelector />
               {activeTab === "tasks" && weekTasks.length > 0 && (
@@ -160,7 +158,6 @@ export default function Home() {
           {/* Tasks Tab */}
           {activeTab === "tasks" && (
             <div className="space-y-3 slide-up">
-              {/* Filters */}
               <div className="flex gap-2 flex-wrap">
                 {FILTERS.map((f) => (
                   <button key={f.value} onClick={() => setFilter(f.value)}
@@ -210,15 +207,14 @@ export default function Home() {
             </div>
           )}
 
-          {activeTab === "calendar" && <div className="slide-up"><DailyView /></div>}
-          {activeTab === "focus"    && <div className="slide-up"><FocusTimer /></div>}
-          {activeTab === "habits"   && <div className="slide-up"><HabitTracker /></div>}
-          {activeTab === "mood"     && <div className="slide-up"><MoodTracker /></div>}
-          {activeTab === "matrix"   && <div className="slide-up"><PriorityMatrix /></div>}
-          {activeTab === "goals"    && <div className="slide-up"><Goals /></div>}
-          {activeTab === "stats"    && <div className="slide-up"><StatsGraph /></div>}
-          {activeTab === "search"   && <div className="slide-up"><SearchTasks /></div>}
-          {activeTab === "notes"    && <div className="slide-up"><QuickNotes /></div>}
+          {activeTab === "dashboard" && <div className="slide-up"><Dashboard /></div>}
+          {activeTab === "daily"     && <div className="slide-up"><DailyChecklist /></div>}
+          {activeTab === "calendar"  && <div className="slide-up"><DailyView /></div>}
+          {activeTab === "focus"     && <div className="slide-up"><FocusTimer /></div>}
+          {activeTab === "habits"    && <div className="slide-up"><HabitTracker /></div>}
+          {activeTab === "mood"      && <div className="slide-up"><MoodTracker /></div>}
+          {activeTab === "goals"     && <div className="slide-up"><Goals /></div>}
+          {activeTab === "teach"     && <div className="slide-up"><TeachingLog /></div>}
         </div>
       </main>
 

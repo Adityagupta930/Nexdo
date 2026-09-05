@@ -33,6 +33,7 @@ function mapRow(t: any): Task {
     recurrenceType: t.recurrence_type ?? undefined,
     recurrenceDays: t.recurrence_days ?? undefined,
     parentTaskId: t.parent_task_id ?? undefined,
+    teachingLogId: t.teaching_log_id ?? undefined,
     completed: t.completed,
     completedAt: t.completed_at,
     createdAt: t.created_at,

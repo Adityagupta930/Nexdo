@@ -1,5 +1,5 @@
 "use client";
-import { CheckSquare, BarChart2, Calendar, Zap, Target, Timer, Search, StickyNote, Flame, LayoutGrid, Smile } from "lucide-react";
+import { CheckSquare, Calendar, Zap, Target, Timer, Flame, Smile, GraduationCap, LayoutDashboard, ListChecks } from "lucide-react";
 
 interface Props {
   activeTab: string;
@@ -7,16 +7,15 @@ interface Props {
 }
 
 const navItems = [
-  { id: "tasks",    label: "Tasks",     icon: CheckSquare, color: "#FF6B6B" },
-  { id: "calendar", label: "Calendar",  icon: Calendar,    color: "#4ECDC4" },
-  { id: "focus",    label: "Focus",     icon: Timer,       color: "#F59E0B" },
-  { id: "habits",   label: "Habits",    icon: Flame,       color: "#FF8E53" },
-  { id: "mood",     label: "Mood",      icon: Smile,       color: "#10B981" },
-  { id: "matrix",   label: "Matrix",    icon: LayoutGrid,  color: "#8B5CF6" },
-  { id: "goals",    label: "Goals",     icon: Target,      color: "#EF4444" },
-  { id: "stats",    label: "Analytics", icon: BarChart2,   color: "#3B82F6" },
-  { id: "search",   label: "Search",    icon: Search,      color: "#6366F1" },
-  { id: "notes",    label: "Notes",     icon: StickyNote,  color: "#F59E0B" },
+  { id: "dashboard", label: "Dashboard",  icon: LayoutDashboard, color: "#6366F1" },
+  { id: "tasks",     label: "Tasks",      icon: CheckSquare,     color: "#FF6B6B" },
+  { id: "daily",     label: "Daily List", icon: ListChecks,      color: "#10B981" },
+  { id: "calendar",  label: "Calendar",   icon: Calendar,        color: "#4ECDC4" },
+  { id: "focus",     label: "Focus",      icon: Timer,           color: "#F59E0B" },
+  { id: "habits",    label: "Habits",     icon: Flame,           color: "#FF8E53" },
+  { id: "mood",      label: "Mood",       icon: Smile,           color: "#10B981" },
+  { id: "goals",     label: "Goals",      icon: Target,          color: "#EF4444" },
+  { id: "teach",     label: "Teach Log",  icon: GraduationCap,   color: "#3B82F6" },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab }: Props) {

@@ -16,6 +16,7 @@ export interface Task {
   recurrenceType?: RecurrenceType;
   recurrenceDays?: number[]; // 0=Sun,1=Mon...6=Sat
   parentTaskId?: string;
+  teachingLogId?: string;
   completed: boolean;
   completedAt?: string;
   createdAt: string;
